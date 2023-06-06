@@ -1,49 +1,50 @@
 /* eslint-disable no-unused-vars */
-import { Server } from 'http'
-import mongoose from 'mongoose'
-import app from './app'
-import config from './config/index'
-import { errorLogger, logger } from './shared/logger'
+import { Server } from 'http';
+import mongoose from 'mongoose';
+import app from './app';
+import config from './config/index';
+import { errorLogger, logger } from './shared/logger';
 
-let server: Server
+let server: Server;
 
-process.on('uncaughtException', err => {
-  console.log('Uncaught exception is detected...')
-  // errorLogger.error(err)
-  errorLogger.error('Uncaught exception is detected.')
-  process.exit(1)
-})
-// console.log(sdfh)
+process.on('uncaughtException', error => {
+  console.log('Uncaught exception is detected...');
+  errorLogger.error(error);
+  process.exit(1);
+});
+
+// console.log(sdfh);
+
 process.on('SIGTERM', () => {
-  console.log('SIGTERM is received')
+  console.log('SIGTERM is received');
   if (server) {
-    server.close()
+    server.close();
   }
-})
+});
 
 async function bootstrap() {
   try {
-    await mongoose.connect(config.database_url as string)
-    logger.info('Database connection established')
+    await mongoose.connect(config.database_url as string);
+    logger.info('Database connection established');
 
     server = app.listen(config.port, () => {
-      logger.info('app is listening on port ' + config.port)
-    })
+      logger.info('app is listening on port ' + config.port);
+    });
   } catch (err) {
-    errorLogger.error('Failed to connect to MongoDB')
+    errorLogger.error('Failed to connect to MongoDB');
   }
 
   process.on('unhandledRejection', error => {
-    console.log('Unhandled rejection, we are closing out server', error)
+    console.log('Unhandled rejection, we are closing out server');
     if (server) {
       server.close(() => {
-        errorLogger.error(error)
-        process.exit(1)
-      })
+        errorLogger.error(error);
+        process.exit(1);
+      });
     } else {
-      process.exit(1)
+      process.exit(1);
     }
-  })
+  });
 }
 
-bootstrap()
+bootstrap();
